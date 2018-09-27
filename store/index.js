@@ -1,7 +1,7 @@
 import Vuex from "vuex";
 import md5 from "md5";
-import db from "~/plugins/firestore";
 import slugify from "slugify";
+import db from "~/plugins/firestore";
 import { saveUserData, clearUserData } from "~/utils";
 import defaultImage from "~/assets/default-image.png";
 
@@ -13,7 +13,10 @@ const createStore = () => {
       loading: false,
       token: null,
       user: null,
-      feed: []
+      feed: [],
+      country: 'us',
+      category: '',
+      source: ''
     },
     mutations: {
       setHeadlines(state, headlines) {
@@ -33,6 +36,15 @@ const createStore = () => {
       },
       setFeed(state, feed) {
         state.feed = feed;
+      },
+      setCountry(state, country) {
+        state.country = country;
+      },
+      setCategory(state, category) {
+        state.category = category;
+      },
+      setSource(state, source) {
+        state.source = source;
       },
       clearToken: state => (state.token = null),
       clearUser: state => (state.user = null),
@@ -61,14 +73,12 @@ const createStore = () => {
         const commentsRef = db
           .collection(`headlines/${payload}/comments`)
           .orderBy('likes', 'desc');
-          // .orderBy("likes", "desc");
 
         let loadedHeadline = {};
         await headlineRef.get().then(async doc => {
           if (doc.exists) {
             loadedHeadline = doc.data();
 
-            // await commentsRef.orderBy("likes", "desc");
             await commentsRef.get().then(querySnapshot => {
               if (querySnapshot.empty) {
                 commit("setHeadline", loadedHeadline);
@@ -85,8 +95,10 @@ const createStore = () => {
       },
       async loadUserFeed({ state, commit }) {
         if (state.user) {
-          await db
-            .collection(`users/${state.user.email}/feed`)
+          const feedRef = db
+          .collection(`users/${state.user.email}/feed`)
+
+          await feedRef
             .onSnapshot(querySnapshot => {
               let headlines = [];
               querySnapshot.forEach(doc => {
@@ -97,27 +109,27 @@ const createStore = () => {
         }
       },
       async addHeadlineToFeed({ state }, payload) {
-        const ref = db.collection(`users/${state.user.email}/feed`);
+        const feedRef = db.collection(`users/${state.user.email}/feed`);
 
-        await ref.doc(payload.title).set(payload);
+        await feedRef.doc(payload.title).set(payload);
       },
       async removeHeadlineFromFeed({ state }, payload) {
-        const ref = db.collection(`users/${state.user}/feed`).doc(payload);
+        const headlineRef = db.collection(`users/${state.user}/feed`).doc(payload);
 
-        await ref.delete();
+        await headlineRef.delete();
       },
       async saveHeadline(context, payload) {
-        const ref = db.collection(`headlines`).doc(payload.slug);
+        const headlineRef = db.collection(`headlines`).doc(payload.slug);
 
-        let id;
-        await ref.get().then(doc => {
+        let headlineId;
+        await headlineRef.get().then(doc => {
           if (doc.exists) {
-            id = doc.id;
+            headlineId = doc.id;
           }
         });
 
-        if (!id) {
-          await ref.set(payload);
+        if (!headlineId) {
+          await headlineRef.set(payload);
         }
       },
       async sendComment({ state, commit }, payload) {
@@ -141,30 +153,31 @@ const createStore = () => {
         commit("setLoading", false);
       },
       async likeComment({ state, commit }, payload) {
-        const commentRef = db
+        const commentsRef = db.collection(
+          `headlines/${state.headline.slug}/comments`
+        ).orderBy("likes", "desc");
+        const likedCommentRef = db
           .collection(`headlines`)
           .doc(state.headline.slug)
           .collection("comments")
           .doc(payload);
-        const commentsRef = db.collection(
-          `headlines/${state.headline.slug}/comments`
-        ).orderBy("likes", "desc");
 
-        await commentRef.get().then(doc => {
+        await likedCommentRef.get().then(doc => {
           if (doc.exists) {
               const prevLikes = doc.data().likes;
               const currentLikes = prevLikes + 1;
-              commentRef.update({
+              likedCommentRef.update({
                 "likes": currentLikes
               });
           }
         });
 
         await commentsRef.onSnapshot(querySnapshot => {
-          let comments = [];
+          let loadedComments = [];
           querySnapshot.forEach(doc => {
-            comments.push(doc.data());
-            commit('setHeadline', { ...state.headline, comments });
+            loadedComments.push(doc.data());
+            const updatedHeadline = { ...state.headline, loadedComments }
+            commit('setHeadline', updatedHeadline);
           });
         })
       },
@@ -205,7 +218,10 @@ const createStore = () => {
       loading: state => state.loading,
       isAuthenticated: state => !!state.token,
       user: state => state.user,
-      feed: state => state.feed
+      feed: state => state.feed,
+      country: state => state.country,
+      category: state => state.category,
+      source: state => state.source
     }
   });
 };

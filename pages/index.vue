@@ -1,5 +1,5 @@
 <template>
-  <div class="md-layout md-alignment-center" style="margin: 70px 0">
+  <div class="md-layout md-alignment-center" style="margin: 4em 0">
     <!-- Top Navigation -->
     <navbar :showSidepanel.sync="showSidepanel" :showNavigation.sync="showNavigation" :isAuthenticated="isAuthenticated" :user="user" :logoutUser="logoutUser"></navbar>
 
@@ -13,7 +13,7 @@
 
       <md-field>
         <label for="country">Country</label>
-        <md-select v-model="country" name="country" id="country" md-dense>
+        <md-select @input="changeCountry" name="country" id="country" md-dense>
           <md-option value="us">United States</md-option>
           <md-option value="ca">Canada</md-option>
           <md-option value="de">Germany</md-option>
@@ -36,17 +36,17 @@
             <img :src="headline.urlToImage" alt="People">
           </md-avatar>
 
-          <div class="md-list-item-text">
-            <span>
-              <a :href="headline.url" target="_blank">{{headline.title}}</a>
-            </span>
-            <span>{{headline.source.name}}</span>
-            <span @click="saveHeadline(headline)">View Comments</span>
-          </div>
+            <div class="md-list-item-text">
+              <span>
+                <a :href="headline.url" target="_blank">{{headline.title}}</a>
+              </span>
+              <span>{{headline.source.name}}</span>
+              <span @click="saveHeadline(headline)">View Comments</span>
+            </div>
 
-          <md-button @click="removeHeadlineFromFeed(headline.title)" class="md-icon-button md-list-action">
-            <md-icon class="md-accent">delete</md-icon>
-          </md-button>
+            <md-button @click="removeHeadlineFromFeed(headline.title)" class="md-icon-button md-list-action">
+              <md-icon class="md-accent">delete</md-icon>
+            </md-button>
         </md-list-item>
         <md-divider class="md-inset"></md-divider>
 
@@ -64,9 +64,9 @@
       <md-list>
         <md-subheader class="md-primary">Categories</md-subheader>
 
-        <md-list-item v-for="(category, i) in categories" :key="i" @click="loadCategory(category.path)">
-          <md-icon :class="category.path === categoryPath ? 'md-primary' : ''">{{category.icon}}</md-icon>
-          <span class="md-list-item-text">{{category.name}}</span>
+        <md-list-item v-for="(c, i) in categories" :key="i" @click="loadCategory(c.path)">
+          <md-icon :class="c.path === category ? 'md-primary' : ''">{{c.icon}}</md-icon>
+          <span class="md-list-item-text">{{c.name}}</span>
         </md-list-item>
       </md-list>
     </md-drawer>
@@ -81,32 +81,32 @@
                 <img :src="headline.urlToImage" :alt="headline.title">
               </md-card-media>
 
-              <md-card-header>
-                <div class="md-title">
-                  <a :href="headline.url" target="_blank">{{headline.title}}</a>
-                </div>
-                <div @click="loadSource(headline.source.id)">
-                  {{headline.source.name}}
-                  <md-icon class="small-icon">book</md-icon>
-                </div>
-                <span class="md-subhead" v-if="headline.author">{{headline.author}}
-                  <md-icon class="small-icon">face</md-icon>
-                </span>
-              </md-card-header>
+                <md-card-header>
+                  <div class="md-title">
+                    <a :href="headline.url" target="_blank">{{headline.title}}</a>
+                  </div>
+                  <div @click="loadSource(headline.source.id)">
+                    {{headline.source.name}}
+                    <md-icon class="small-icon">book</md-icon>
+                  </div>
+                  <span class="md-subhead" v-if="headline.author">{{headline.author}}
+                    <md-icon class="small-icon">face</md-icon>
+                  </span>
+                </md-card-header>
 
-              <md-card-content>
-                {{headline.description}}
-              </md-card-content>
+                <md-card-content>
+                  {{headline.description}}
+                </md-card-content>
 
-              <md-card-actions>
-                <md-button @click="addHeadlineToFeed(headline)" :class="isInFeed(headline.title)">
-                  <md-icon class="md-primary">bookmark
-                  </md-icon>
-                </md-button>
-                <md-button @click="saveHeadline(headline)" class="md-icon-button">
-                  <md-icon>message</md-icon>
-                </md-button>
-              </md-card-actions>
+                <md-card-actions>
+                  <md-button @click="addHeadlineToFeed(headline)" :class="isInFeed(headline.title)">
+                    <md-icon class="md-primary">bookmark
+                    </md-icon>
+                  </md-button>
+                  <md-button @click="saveHeadline(headline)" class="md-icon-button">
+                    <md-icon>message</md-icon>
+                  </md-button>
+                </md-card-actions>
             </md-ripple>
           </md-card>
         </ul>
@@ -124,7 +124,6 @@ export default {
   data: () => ({
     showNavigation: false,
     showSidepanel: false,
-    categoryPath: "",
     categories: [
       { name: "Top Headlines", path: "", icon: "today" },
       { name: "Technology", path: "technology", icon: "keyboard" },
@@ -134,8 +133,7 @@ export default {
       { name: "Science", path: "science", icon: "fingerprint" },
       { name: "Sports", path: "sports", icon: "golf_course" }
     ],
-    sourceId: "",
-    country: "us"
+    sourceId: ""
   }),
   computed: {
     headlines() {
@@ -152,12 +150,21 @@ export default {
     },
     loading() {
       return this.$store.getters.loading;
+    },
+    country() {
+      return this.$store.getters.country;
+    },
+    category() {
+      return this.$store.getters.category;
+    },
+    source() {
+      return this.$store.getters.source;
     }
   },
-  async fetch({ store, query }) {
+  async fetch({ store }) {
     await store.dispatch(
       "loadHeadlines",
-      `/api/top-headlines?country=${this.country || "us"}`
+      `/api/top-headlines?country=${store.state.country}&category=${store.state.category}`
     );
     await store.dispatch("loadUserFeed");
   },
@@ -166,27 +173,28 @@ export default {
       await this.$store.dispatch(
         "loadHeadlines",
         `/api/top-headlines?country=${this.country}&category=${
-          this.categoryPath
+          this.category
         }`
       );
     }
   },
   methods: {
     async loadCategory(categoryPath) {
-      this.categoryPath = categoryPath;
+      this.$store.commit('setCategory', categoryPath);
       await this.$store.dispatch(
         "loadHeadlines",
-        `/api/top-headlines?country=${this.country}&category=${
-          this.categoryPath
-        }`
+        `/api/top-headlines?country=${this.country}&category=${this.category}`
       );
+    },
+    changeCountry(event) {
+      this.$store.commit('setCountry', event);
     },
     async loadSource(sourceId) {
       if (sourceId) {
-        this.sourceId = sourceId;
+        this.$store.commit('setSource', sourceId);
         await this.$store.dispatch(
           "loadHeadlines",
-          `/api/top-headlines?sources=${sourceId}`
+          `/api/top-headlines?sources=${this.source}`
         );
       }
     },

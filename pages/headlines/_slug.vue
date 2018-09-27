@@ -17,7 +17,7 @@
 
       <md-field>
         <label for="country">Country</label>
-        <md-select v-model="country" name="country" id="country" md-dense>
+        <md-select  @input="changeCountry" name="country" id="country" md-dense>
           <md-option value="us">United States</md-option>
           <md-option value="ca">Canada</md-option>
           <md-option value="de">Germany</md-option>
@@ -68,9 +68,9 @@
       <md-list>
         <md-subheader class="md-primary">Categories</md-subheader>
 
-        <md-list-item v-for="(category, i) in categories" :key="i" @click="loadCategory(category.path)">
-          <md-icon :class="category.path === categoryPath ? 'md-primary' : ''">{{category.icon}}</md-icon>
-          <span class="md-list-item-text">{{category.name}}</span>
+        <md-list-item v-for="(c, i) in categories" :key="i" @click="loadCategory(c.path)">
+          <md-icon :class="c.path === category ? 'md-primary' : ''">{{c.icon}}</md-icon>
+          <span class="md-list-item-text">{{c.name}}</span>
         </md-list-item>
       </md-list>
     </md-drawer>
@@ -122,8 +122,8 @@
             <p>{{comment.text}}</p>
           </div>
 
-          <md-badge class="md-primary" md-position="bottom" :md-content="comment.likes ? comment.likes : 0" />
-            <md-button @click="likeComment(comment.id)" class="md-icon-button">
+          <md-badge class="md-primary" md-position="bottom" :md-content="comment.likes" />
+            <md-button :disabled="loading || !user" @click="likeComment(comment.id)" class="md-icon-button">
               <md-icon>thumb_up</md-icon>
             </md-button>
         </md-list-item>
@@ -143,7 +143,6 @@ export default {
     text: "",
     showNavigation: false,
     showSidepanel: false,
-    categoryPath: "",
     categories: [
       { name: "Top Headlines", path: "", icon: "today" },
       { name: "Technology", path: "technology", icon: "keyboard" },
@@ -153,14 +152,13 @@ export default {
       { name: "Science", path: "science", icon: "fingerprint" },
       { name: "Sports", path: "sports", icon: "golf_course" }
     ],
-    country: "us"
   }),
   watch: {
     async country() {
       await this.$store.dispatch(
         "loadHeadlines",
         `/api/top-headlines?country=${this.country}&category=${
-          this.categoryPath
+          this.category
         }`
       );
     }
@@ -183,6 +181,12 @@ export default {
     },
     loading() {
       return this.$store.getters.loading;
+    },
+    country() {
+      return this.$store.getters.country;
+    },
+    category() {
+      return this.$store.getters.category;
     }
   },
   async fetch({ store, params }) {
@@ -203,14 +207,15 @@ export default {
     async likeComment(commentId) {
       await this.$store.dispatch('likeComment', commentId);
     },
-    async loadCategory(categoryPath) {
-      this.categoryPath = categoryPath;
+     async loadCategory(categoryPath) {
+      this.$store.commit('setCategory', categoryPath);
       await this.$store.dispatch(
         "loadHeadlines",
-        `/api/top-headlines?country=${this.country}&category=${
-          this.categoryPath
-        }`
+        `/api/top-headlines?country=${this.country}&category=${this.category}`
       );
+    },
+    changeCountry(event) {
+      this.$store.commit('setCountry', event);
     },
     logoutUser() {
       this.$store.dispatch("logoutUser");
