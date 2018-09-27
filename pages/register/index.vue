@@ -8,7 +8,7 @@
 
         <form @submit.prevent="validateUser">
           <md-card-content>
-            <md-field :class="getValidationClass('email')">
+            <md-field md-clearable :class="getValidationClass('email')">
               <label for="email">Email</label>
               <md-input type="email" name="email" id="email" autocomplete="email" v-model="form.email" :disabled="loading" />
               <span class="md-error" v-if="!$v.form.email.required">The email is required</span>

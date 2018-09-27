@@ -26,9 +26,37 @@
           Register
         </md-button>
       </template>
-      <md-button class="md-primary" @click="active = true">Search</md-button>
+      <md-button class="md-primary" @click="showDialog = true">Search</md-button>
 
-      <md-dialog-prompt :md-active.sync="active" v-model="value" md-content="<md-progress-spinner></md-progress-spinner>" md-title="Find a headline" md-input-maxlength="25" md-input-placeholder="Search articles" md-confirm-text="Submit" @md-confirm="searchHeadlines" />
+      <md-dialog :md-active.sync="showDialog">
+        <md-dialog-title>Search Headlines</md-dialog-title>
+
+        <div class="md-layout" style="padding: 1em">
+          <md-field>
+            <label>Search Term(s)</label>
+            <md-input v-model="query" placeholder="Use quotes for exact matches, AND / OR / NOT for multiple terms" maxlength="30"></md-input>
+          </md-field>
+          <md-datepicker v-model="fromDate" md-immediately>
+            <label>Select starting date (optional)</label>
+          </md-datepicker>
+          <md-datepicker v-model="toDate" md-immediately>
+            <label>Select ending date (optional)</label>
+          </md-datepicker>
+          <md-field>
+            <label for="sortBy">Sort search results by (optional)</label>
+            <md-select v-model="sortBy" name="sortBy" id="sortBy" md-dense>
+              <md-option value="publishedAt">Newest (default)</md-option>
+              <md-option value="relevancy">Relevant</md-option>
+              <md-option value="popularity">Popular</md-option>
+            </md-select>
+          </md-field>
+        </div>
+
+        <md-dialog-actions>
+          <md-button class="md-accent" @click="showDialog = false">Cancel</md-button>
+          <md-button class="md-primary" @click="searchHeadlines">Save</md-button>
+        </md-dialog-actions>
+      </md-dialog>
 
       <md-button @click="$emit('update:showSidepanel', true)" class="md-accent">Categories</md-button>
     </div>
@@ -46,15 +74,23 @@ export default {
     "isAuthenticated"
   ],
   data: () => ({
-    active: false,
-    value: ""
+    showDialog: false,
+    query: "",
+    fromDate: "",
+    toDate: "",
+    sortBy: ""
   }),
   methods: {
     async searchHeadlines() {
       await this.$store.dispatch(
         "loadHeadlines",
-        `/api/everything?q=${this.value}`
+        `/api/everything?q=${this.query}&from=${new Date(
+          this.fromDate
+        ).toISOString()}&to=${new Date(this.toDate).toISOString()}&sortBy=${
+          this.sortBy
+        }`
       );
+      this.showDialog = false;
     }
   }
 };
