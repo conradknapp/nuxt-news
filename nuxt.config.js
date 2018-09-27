@@ -61,12 +61,7 @@ module.exports = {
     AUTH_API_KEY: "AIzaSyAk9S2j44Y0gVWGVwlXxqKy9KBec6CLXJE"
   },
   router: {
-    middleware: "check-auth",
-    scrollBehavior: (to, from, savedPosition) => {
-      if (to.path === '/') {
-        console.log(savedPosition);
-      }
-    }
+    middleware: "check-auth"
   },
   build: {
     /*

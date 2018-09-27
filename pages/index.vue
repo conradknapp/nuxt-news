@@ -1,5 +1,5 @@
 <template>
-  <div class="md-layout md-alignment-center" style="margin: 4em 0">
+  <div class="md-layout md-alignment-center" style="padding: 5em 0">
     <!-- Top Navigation -->
     <navbar :showSidepanel.sync="showSidepanel" :showNavigation.sync="showNavigation" :isAuthenticated="isAuthenticated" :user="user" :logoutUser="logoutUser"></navbar>
 
@@ -75,7 +75,7 @@
     <div class="md-layout-item md-size-95">
       <md-content class="md-layout md-gutter">
         <ul v-for="headline in headlines" :key="headline.id" class="md-layout-item md-large-size-25 md-medium-size-33 md-small-size-50 md-xsmall-size-100">
-          <md-card style="margin-top: 20px;" md-with-hover>
+          <md-card style="margin-top: 1em;" md-with-hover>
             <md-ripple>
               <md-card-media md-ratio="16:9">
                 <img :src="headline.urlToImage" :alt="headline.title">
@@ -89,9 +89,13 @@
                     {{headline.source.name}}
                     <md-icon class="small-icon">book</md-icon>
                   </div>
-                  <span class="md-subhead" v-if="headline.author">{{headline.author}}
+                  <div class="md-subhead" v-if="headline.author">{{headline.author}}
                     <md-icon class="small-icon">face</md-icon>
-                  </span>
+                  </div>
+                  <div class="md-subhead">
+                    {{headline.publishedAt}}
+                    <md-icon class="small-icon">alarm</md-icon>
+                  </div>
                 </md-card-header>
 
                 <md-card-content>

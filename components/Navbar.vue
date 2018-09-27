@@ -11,7 +11,7 @@
           <md-avatar>
             <img :src="user.avatar" :alt="user.email">
           </md-avatar>
-          {{user.email}}
+            {{user.email}}
         </md-button>
         <md-button @click="logoutUser">
           Logout
@@ -26,6 +26,9 @@
           Register
         </md-button>
       </template>
+      <md-button class="md-primary" @click="active = true">Search</md-button>
+
+      <md-dialog-prompt :md-active.sync="active" v-model="value" md-content="<md-progress-spinner></md-progress-spinner>" md-title="Find a headline" md-input-maxlength="25" md-input-placeholder="Search articles" md-confirm-text="Submit" @md-confirm="searchHeadlines" />
 
       <md-button @click="$emit('update:showSidepanel', true)" class="md-accent">Categories</md-button>
     </div>
@@ -41,6 +44,18 @@ export default {
     "logoutUser",
     "user",
     "isAuthenticated"
-  ]
+  ],
+  data: () => ({
+    active: false,
+    value: ""
+  }),
+  methods: {
+    async searchHeadlines() {
+      await this.$store.dispatch(
+        "loadHeadlines",
+        `/api/everything?q=${this.value}`
+      );
+    }
+  }
 };
 </script>

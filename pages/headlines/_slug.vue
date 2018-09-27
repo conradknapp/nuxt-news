@@ -1,5 +1,5 @@
 <template>
-  <div class="md-layout md-alignment-center" style="margin: 70px 0;">
+  <div class="md-layout md-alignment-center" style="padding: 5em 0;">
 
     <md-button @click="$router.go(-1)" class="md-fab md-fab-bottom-right md-fixed md-primary">
       <md-icon>arrow_back</md-icon>
