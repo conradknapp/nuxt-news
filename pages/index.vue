@@ -104,7 +104,7 @@
                 </md-card-content>
 
                 <md-card-actions>
-                  <md-button @click="addHeadlineToFeed(headline)" :class="isInFeed(headline.title)">
+                  <md-button @click="addHeadlineToFeed(headline)" class="md-icon-button" :class="isInFeed(headline.title)" :disabled="isButtonDisabled(headline.title)">
                     <md-icon class="md-primary">bookmark
                     </md-icon>
                   </md-button>
@@ -222,7 +222,10 @@ export default {
     isInFeed(title) {
       const inFeed =
         this.feed.findIndex(headline => headline.title === title) > -1;
-      return inFeed ? "md-icon-button md-accent" : "md-icon-button";
+      return inFeed ? "md-accent" : "";
+    },
+    isButtonDisabled(title) {
+      return this.feed.findIndex(headline => headline.title === title) > -1;
     }
   }
 };

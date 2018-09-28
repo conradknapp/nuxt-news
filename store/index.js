@@ -103,6 +103,12 @@ const createStore = () => {
               headlines.push(doc.data());
               commit("setFeed", headlines);
             });
+
+            // Clear feed if the querySnapshot is empty
+            if (querySnapshot.empty) {
+              headlines = [];
+              commit("setFeed", headlines);
+            }
           });
         }
       },
@@ -179,7 +185,10 @@ const createStore = () => {
           let loadedComments = [];
           querySnapshot.forEach(doc => {
             loadedComments.push(doc.data());
-            const updatedHeadline = { ...state.headline, comments: loadedComments };
+            const updatedHeadline = {
+              ...state.headline,
+              comments: loadedComments
+            };
             commit("setHeadline", updatedHeadline);
           });
         });
