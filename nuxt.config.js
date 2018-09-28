@@ -33,7 +33,8 @@ module.exports = {
   plugins: [
     { src: "~/plugins/vue-material" },
     { src: "~/plugins/axios" },
-    { src: "~/plugins/firestore.js", ssr: false }
+    { src: "~/plugins/firestore.js", ssr: false },
+    { src: "~/plugins/filters" }
   ],
   modules: ["@nuxtjs/axios", "@nuxtjs/proxy"],
   axios: {
