@@ -2,7 +2,7 @@
   "name": "nuxt-news",
   "version": "1.0.0",
   "description": "Nuxt.js project",
-  "author": "Conrad Knapp <reedbarger@protonmail.com>",
+  "author": "Conrad Knapp",
   "private": true,
   "scripts": {
     "dev": "nuxt",

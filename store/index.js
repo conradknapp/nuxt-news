@@ -51,27 +51,28 @@ const createStore = () => {
       clearFeed: state => (state.feed = [])
     },
     actions: {
-      async loadHeadlines({ commit }, newsUrl) {
+      async loadHeadlines({ commit }, apiUrl) {
         commit("setLoading", true);
-        const { articles } = await this.$axios.$get(newsUrl);
+        const { articles } = await this.$axios.$get(apiUrl);
         commit("setLoading", false);
         const headlines = articles.map(article => {
           const slug = slugify(article.title, {
             replacement: "-",
-            remove: /[*+~.()'"!:@?%/]/g,
+            remove: /[^a-zA-Z0-9 -]/g,
             lower: true
           });
           if (!article.urlToImage) {
             article.urlToImage = defaultImage;
           }
-          return { ...article, slug };
+          const headline = { ...article, slug };
+          return headline;
         });
         commit("setHeadlines", headlines);
       },
-      async loadHeadline({ commit }, payload) {
-        const headlineRef = db.collection("headlines").doc(payload);
+      async loadHeadline({ commit }, headlineSlug) {
+        const headlineRef = db.collection("headlines").doc(headlineSlug);
         const commentsRef = db
-          .collection(`headlines/${payload}/comments`)
+          .collection(`headlines/${headlineSlug}/comments`)
           .orderBy("likes", "desc");
 
         let loadedHeadline = {};
@@ -112,20 +113,20 @@ const createStore = () => {
           });
         }
       },
-      async addHeadlineToFeed({ state }, payload) {
+      async addHeadlineToFeed({ state }, headline) {
         const feedRef = db.collection(`users/${state.user.email}/feed`);
 
-        await feedRef.doc(payload.title).set(payload);
+        await feedRef.doc(headline.title).set(headline);
       },
-      async removeHeadlineFromFeed({ state }, payload) {
+      async removeHeadlineFromFeed({ state }, headline) {
         const headlineRef = db
           .collection(`users/${state.user.email}/feed`)
-          .doc(payload);
+          .doc(headline);
 
         await headlineRef.delete();
       },
-      async saveHeadline(context, payload) {
-        const headlineRef = db.collection(`headlines`).doc(payload.slug);
+      async saveHeadline(context, headline) {
+        const headlineRef = db.collection(`headlines`).doc(headline.slug);
 
         let headlineId;
         await headlineRef.get().then(doc => {
@@ -135,17 +136,17 @@ const createStore = () => {
         });
 
         if (!headlineId) {
-          await headlineRef.set(payload);
+          await headlineRef.set(headline);
         }
       },
-      async sendComment({ state, commit }, payload) {
+      async sendComment({ state, commit }, comment) {
         const commentsRef = db.collection(
           `headlines/${state.headline.slug}/comments`
         );
 
         commit("setLoading", true);
         // Add comment
-        await commentsRef.doc(payload.id).set(payload);
+        await commentsRef.doc(comment.id).set(comment);
 
         // Order comments by likes (in descending order), listen for changes and then update headline
         await commentsRef
@@ -161,7 +162,7 @@ const createStore = () => {
           });
         commit("setLoading", false);
       },
-      async likeComment({ state, commit }, payload) {
+      async likeComment({ state, commit }, commentId) {
         const commentsRef = db
           .collection(`headlines/${state.headline.slug}/comments`)
           .orderBy("likes", "desc");
@@ -169,7 +170,7 @@ const createStore = () => {
           .collection(`headlines`)
           .doc(state.headline.slug)
           .collection("comments")
-          .doc(payload);
+          .doc(commentId);
 
         await likedCommentRef.get().then(doc => {
           if (doc.exists) {
@@ -193,22 +194,25 @@ const createStore = () => {
           });
         });
       },
-      async authenticateUser({ commit }, payload) {
+      async authenticateUser({ commit }, userPayload) {
         try {
           commit("setLoading", true);
-          const userData = await this.$axios.$post(`/${payload.action}/`, {
-            email: payload.email,
-            password: payload.password,
-            returnSecureToken: true
-          });
+          const authUserData = await this.$axios.$post(
+            `/${userPayload.action}/`,
+            {
+              email: userPayload.email,
+              password: userPayload.password,
+              returnSecureToken: true
+            }
+          );
           const avatar = `http://gravatar.com/avatar/${md5(
-            userData.email
+            authUserData.email
           )}?d=identicon`;
-          const user = { email: payload.email, avatar };
+          const user = { email: userPayload.email, avatar };
           commit("setLoading", false);
           commit("setUser", user);
-          commit("setToken", userData.idToken);
-          saveUserData(userData, user);
+          commit("setToken", authUserData.idToken);
+          saveUserData(authUserData, user);
         } catch (err) {
           commit("setLoading", false);
           console.error(err);
@@ -220,8 +224,8 @@ const createStore = () => {
         commit("clearFeed");
         clearUserData();
       },
-      setLogoutTimer({ dispatch }, payload) {
-        setTimeout(() => dispatch("logoutUser"), payload);
+      setLogoutTimer({ dispatch }, interval) {
+        setTimeout(() => dispatch("logoutUser"), interval);
       }
     },
     getters: {

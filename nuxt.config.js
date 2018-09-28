@@ -22,7 +22,7 @@ module.exports = {
   /*
   ** Customize the progress bar color
   */
-  loading: { color: "#9ccc65" },
+  loading: { color: "#9ccc65", height: "10px" },
   /*
   ** Build configuration
   */
@@ -33,8 +33,8 @@ module.exports = {
   plugins: [
     { src: "~/plugins/vue-material" },
     { src: "~/plugins/axios" },
-    { src: "~/plugins/firestore.js", ssr: false },
-    { src: "~/plugins/filters" }
+    { src: "~/plugins/firestore", ssr: false },
+    { src: "~/plugins/time-filters" }
   ],
   modules: ["@nuxtjs/axios", "@nuxtjs/proxy"],
   axios: {

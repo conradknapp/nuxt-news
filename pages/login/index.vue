@@ -36,7 +36,9 @@
         </md-card-actions>
 
       </form>
-      <md-snackbar :md-active.sync="isAuthenticated">{{form.email}} was successfully logged in!</md-snackbar>
+      <md-snackbar :md-active.sync="isAuthenticated">
+        {{form.email}} was successfully logged in!
+      </md-snackbar>
     </md-card>
   </div>
 </template>

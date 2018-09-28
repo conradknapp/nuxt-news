@@ -120,7 +120,7 @@
             <img :src="comment.user.avatar" :alt="comment.text">
           </md-avatar>
             <div class="md-list-item-text">
-              <span>{{comment.user.email}}</span>
+              <span>{{comment.user.username}}</span>
               <span>{{comment.publishedAt | commentTimeToNow}}</span>
               <p>{{comment.text}}</p>
             </div>
@@ -195,15 +195,14 @@ export default {
   },
   methods: {
     async sendComment() {
-      this.user["email"] = this.user["email"].split("@")[0];
-      const commentPayload = {
+      const comment = {
         id: uuidv4(),
         text: this.text,
-        user: this.user,
+        user: this.getUserData(),
         publishedAt: Date.now(),
         likes: 0
       };
-      await this.$store.dispatch("sendComment", commentPayload);
+      await this.$store.dispatch("sendComment", comment);
       this.text = "";
     },
     async likeComment(commentId) {
@@ -215,6 +214,11 @@ export default {
         "loadHeadlines",
         `/api/top-headlines?country=${this.country}&category=${this.category}`
       );
+    },
+    getUserData() {
+      const newUser = { ...this.user };
+      newUser["username"] = newUser["email"].split("@")[0];
+      return newUser;
     },
     changeCountry(event) {
       this.$store.commit("setCountry", event);
