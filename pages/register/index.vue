@@ -1,38 +1,43 @@
 <template>
-  <div class="md-layout md-alignment-center">
-    <div class="md-layout-item md-size-50">
-      <md-card class="md-layout-item">
-        <md-card-header>
-          <div class="md-title">Register</div>
-        </md-card-header>
+  <div class="md-layout md-alignment-center-center" style="height: 100vh;">
+    <md-card class="md-layout-item md-size-50">
+      <md-card-header>
+        <div class="md-title">Register</div>
+      </md-card-header>
 
-        <form @submit.prevent="validateUser">
-          <md-card-content>
-            <md-field md-clearable :class="getValidationClass('email')">
-              <label for="email">Email</label>
-              <md-input type="email" name="email" id="email" autocomplete="email" v-model="form.email" :disabled="loading" />
-              <span class="md-error" v-if="!$v.form.email.required">The email is required</span>
-              <span class="md-error" v-else-if="!$v.form.email.email">Invalid email</span>
-            </md-field>
+      <!-- Back Button -->
+      <md-button @click="$router.go(-1)" class="md-fab md-fab-bottom-right md-fixed md-primary">
+        <md-icon>arrow_back</md-icon>
+      </md-button>
 
-            <md-field :class="getValidationClass('password')">
-              <label for="password">Password</label>
-              <md-input type="password" name="password" id="password" autocomplete="password" v-model="form.password" :disabled="loading" />
+      <!-- Register Form -->
+      <form @submit.prevent="validateUser">
+        <md-card-content>
+          <md-field md-clearable :class="getValidationClass('email')">
+            <label for="email">Email</label>
+            <md-input type="email" name="email" id="email" autocomplete="email" v-model="form.email" :disabled="loading" />
+            <span class="md-error" v-if="!$v.form.email.required">The email is required</span>
+            <span class="md-error" v-else-if="!$v.form.email.email">Invalid email</span>
+          </md-field>
 
-              <span class="md-error" v-if="!$v.form.password.required">The password is required</span>
-              <span class="md-error" v-else-if="!$v.form.password.minLength">Password too short</span>
-              <span class="md-error" v-else-if="!$v.form.password.maxLength">Password too long</span>
-            </md-field>
-          </md-card-content>
+          <md-field :class="getValidationClass('password')">
+            <label for="password">Password</label>
+            <md-input type="password" name="password" id="password" autocomplete="password" v-model="form.password" :disabled="loading" />
 
-          <md-card-actions>
-            <md-button type="submit" class="md-primary" :disabled="loading">Submit</md-button>
-          </md-card-actions>
+            <span class="md-error" v-if="!$v.form.password.required">The password is required</span>
+            <span class="md-error" v-else-if="!$v.form.password.minLength">Password too short</span>
+            <span class="md-error" v-else-if="!$v.form.password.maxLength">Password too long</span>
+          </md-field>
+        </md-card-content>
 
-        </form>
-        <md-snackbar :md-active.sync="isAuthenticated">{{form.email}} was successfully registered in!</md-snackbar>
-      </md-card>
-    </div>
+        <md-card-actions>
+          <md-button to="/login">Go to Login</md-button>
+          <md-button type="submit" class="md-primary md-raised" :disabled="loading">Submit</md-button>
+        </md-card-actions>
+
+      </form>
+      <md-snackbar :md-active.sync="isAuthenticated">{{form.email}} was successfully registered in!</md-snackbar>
+    </md-card>
   </div>
 </template>
 
@@ -54,7 +59,7 @@ export default {
       password: null
     }
   }),
-   validations: {
+  validations: {
     form: {
       email: {
         required,
@@ -91,7 +96,7 @@ export default {
         returnSecureToken: true
       });
     },
-     getValidationClass(fieldName) {
+    getValidationClass(fieldName) {
       const field = this.$v.form[fieldName];
 
       if (field) {

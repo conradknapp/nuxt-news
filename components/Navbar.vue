@@ -3,7 +3,9 @@
     <md-button class="md-icon-button" @click="$emit('update:showNavigation', true)">
       <md-icon>menu</md-icon>
     </md-button>
-    <span to='/' class="md-title">NuxtNews</span>
+    <nuxt-link to='/' class="md-primary md-title">
+      NuxtNews
+    </nuxt-link>
 
     <div class="md-toolbar-section-end">
       <template v-if="isAuthenticated">
@@ -54,7 +56,7 @@
 
         <md-dialog-actions>
           <md-button class="md-accent" @click="showDialog = false">Cancel</md-button>
-          <md-button class="md-primary" @click="searchHeadlines">Save</md-button>
+          <md-button class="md-primary" @click="searchHeadlines">Search</md-button>
         </md-dialog-actions>
       </md-dialog>
 
@@ -84,13 +86,16 @@ export default {
     async searchHeadlines() {
       await this.$store.dispatch(
         "loadHeadlines",
-        `/api/everything?q=${this.query}&from=${new Date(
+        `/api/everything?q=${this.query}&from=${this.dateToISOString(
           this.fromDate
-        ).toISOString()}&to=${new Date(this.toDate).toISOString()}&sortBy=${
-          this.sortBy
-        }`
+        )}&to=${this.dateToISOString(this.toDate)}&sortBy=${this.sortBy}`
       );
       this.showDialog = false;
+    },
+    dateToISOString(date) {
+      if (date) {
+        return new Date(date).toISOString();
+      }
     }
   }
 };

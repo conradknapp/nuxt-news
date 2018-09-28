@@ -1,9 +1,9 @@
 <template>
-  <div class="md-layout md-alignment-center" style="padding: 5em 0">
+  <div class="md-layout md-alignment-center" style="margin: 4em 0">
     <!-- Top Navigation -->
     <navbar :showSidepanel.sync="showSidepanel" :showNavigation.sync="showNavigation" :isAuthenticated="isAuthenticated" :user="user" :logoutUser="logoutUser"></navbar>
 
-    <!-- Personal News Feed (Left Sidepanel) -->
+    <!-- Personal News Feed (Left Drawer) -->
     <md-drawer md-fixed :md-active.sync="showNavigation">
       <md-toolbar md-elevation="1">
         <span class="md-title">Personal Feed</span>
@@ -13,7 +13,7 @@
 
       <md-field>
         <label for="country">Country</label>
-        <md-select @input="changeCountry" name="country" id="country" md-dense>
+        <md-select @input="changeCountry" :value="country" name="country" id="country" md-dense>
           <md-option value="us">United States</md-option>
           <md-option value="ca">Canada</md-option>
           <md-option value="de">Germany</md-option>
@@ -21,7 +21,7 @@
         </md-select>
       </md-field>
 
-      <!-- Default Markup if Feed Empty -->
+      <!-- Default Markup (if Feed Empty) -->
       <md-empty-state v-if="feed.length === 0 && !user" class="md-primary" md-icon="bookmarks" md-label="Nothing in Feed" md-description="Login to bookmark headlines">
         <md-button to="/login" class="md-primary md-raised">Login</md-button>
       </md-empty-state>
@@ -29,6 +29,7 @@
       <md-empty-state v-else-if="feed.length === 0" class="md-accent" md-icon="bookmark_outline" md-label="Nothing in Feed" md-description="Anything you bookmark will be safely stored here.">
       </md-empty-state>
 
+      <!-- Feed Content (if Feed Not Empty) -->
       <md-list class="md-triple-line" v-else v-for="headline in feed" :key="headline.id">
 
         <md-list-item>
@@ -53,7 +54,7 @@
       </md-list>
     </md-drawer>
 
-    <!-- News Options (Right Sidepanel) -->
+    <!-- News Options (Right Drawer) -->
     <md-drawer md-fixed :md-active.sync="showSidepanel" class="md-right">
       <md-toolbar :md-elevation="1">
         <span class="md-title">News Categories</span>
@@ -64,16 +65,16 @@
       <md-list>
         <md-subheader class="md-primary">Categories</md-subheader>
 
-        <md-list-item v-for="(c, i) in categories" :key="i" @click="loadCategory(c.path)">
-          <md-icon :class="c.path === category ? 'md-primary' : ''">{{c.icon}}</md-icon>
-          <span class="md-list-item-text">{{c.name}}</span>
+        <md-list-item v-for="(newsCategory, i) in newsCategories" :key="i" @click="loadCategory(newsCategory.path)">
+          <md-icon :class="newsCategory.path === category ? 'md-primary' : ''">{{newsCategory.icon}}</md-icon>
+          <span class="md-list-item-text">{{newsCategory.name}}</span>
         </md-list-item>
       </md-list>
     </md-drawer>
 
     <!-- App Content -->
     <div class="md-layout-item md-size-95">
-      <md-content class="md-layout md-gutter">
+      <md-content style="background: #007998; padding: 1em" class="md-layout md-gutter">
         <ul v-for="headline in headlines" :key="headline.id" class="md-layout-item md-large-size-25 md-medium-size-33 md-small-size-50 md-xsmall-size-100">
           <md-card style="margin-top: 1em;" md-with-hover>
             <md-ripple>
@@ -128,7 +129,7 @@ export default {
   data: () => ({
     showNavigation: false,
     showSidepanel: false,
-    categories: [
+    newsCategories: [
       { name: "Top Headlines", path: "", icon: "today" },
       { name: "Technology", path: "technology", icon: "keyboard" },
       { name: "Business", path: "business", icon: "business_center" },
@@ -168,7 +169,9 @@ export default {
   async fetch({ store }) {
     await store.dispatch(
       "loadHeadlines",
-      `/api/top-headlines?country=${store.state.country}&category=${store.state.category}`
+      `/api/top-headlines?country=${store.state.country}&category=${
+        store.state.category
+      }`
     );
     await store.dispatch("loadUserFeed");
   },
@@ -176,26 +179,24 @@ export default {
     async country() {
       await this.$store.dispatch(
         "loadHeadlines",
-        `/api/top-headlines?country=${this.country}&category=${
-          this.category
-        }`
+        `/api/top-headlines?country=${this.country}&category=${this.category}`
       );
     }
   },
   methods: {
-    async loadCategory(categoryPath) {
-      this.$store.commit('setCategory', categoryPath);
+    async loadCategory(category) {
+      this.$store.commit("setCategory", category);
       await this.$store.dispatch(
         "loadHeadlines",
         `/api/top-headlines?country=${this.country}&category=${this.category}`
       );
     },
     changeCountry(event) {
-      this.$store.commit('setCountry', event);
+      this.$store.commit("setCountry", event);
     },
     async loadSource(sourceId) {
       if (sourceId) {
-        this.$store.commit('setSource', sourceId);
+        this.$store.commit("setSource", sourceId);
         await this.$store.dispatch(
           "loadHeadlines",
           `/api/top-headlines?sources=${this.source}`
