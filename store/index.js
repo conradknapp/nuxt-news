@@ -205,10 +205,23 @@ const createStore = () => {
               returnSecureToken: true
             }
           );
-          const avatar = `http://gravatar.com/avatar/${md5(
-            authUserData.email
-          )}?d=identicon`;
-          const user = { email: userPayload.email, avatar };
+          let user;
+          if (userPayload.action === "register") {
+            const avatar = `http://gravatar.com/avatar/${md5(
+              authUserData.email
+            )}?d=identicon`;
+            user = { email: userPayload.email, avatar };
+            await db
+              .collection("users")
+              .doc(userPayload.email)
+              .set(user);
+          } else {
+            const val = await db
+              .collection("users")
+              .doc(userPayload.email)
+              .get();
+            user = val.data();
+          }
           commit("setLoading", false);
           commit("setUser", user);
           commit("setToken", authUserData.idToken);
